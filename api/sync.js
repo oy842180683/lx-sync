@@ -1,3 +1,5 @@
+import { EdgeConfigClient } from "@vercel/edge-config";
+
 export const config = {
   runtime: "edge"
 };
@@ -12,6 +14,9 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
   "Access-Control-Allow-Headers": "Authorization,Content-Type",
 };
+
+// 初始化Edge Config客户端
+const edgeConfig = EdgeConfigClient.fromConnectionString(process.env.LX_KV);
 
 // 鉴权校验函数
 function checkAuth(req) {
@@ -31,11 +36,10 @@ export default async function handler(req) {
 
   const url = new URL(req.url);
   const path = url.pathname;
-  const edgeConfig = process.env.LX_KV; // 对应Vercel Edge Config存储
 
   // 1. 访问 /sync/get 获取歌单
   if (path === "/sync/get" && req.method === "GET") {
-    // 未登录返回401（和你原CF返回格式完全一致）
+    // 未登录返回401
     if (!checkAuth(req)) {
       return Response.json(
         { code: 401, msg: "账号密码错误" },
